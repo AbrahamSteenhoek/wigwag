@@ -3,13 +3,10 @@
 
 unsigned long startTime;
 const long interval = 100;
-const long switch_interval = 200;
+//const long switch_interval = 200; // TODO
 
 unsigned int flash_count;
 bool state = LOW;
-
-bool pattern_state = true;
-unsigned int pattern_select = 0;
 
 enum class Pattern
 {
@@ -90,21 +87,22 @@ public:
     PatternFlasher(): current_pattern( Pattern::WIGWAG ) {}
 
     Pattern CurrentPattern() { return current_pattern; }
-    
+
     void UpdatePattern( PatternSelector &pattern_selector )
     {
         current_pattern = pattern_selector.CurrentPattern();
-        flashing_pins[0] = pattern_selector.init_pins()[0];
-        flashing_pins[1] = pattern_selector.init_pins()[1];
+        ReInitLights( pattern_selector.init_pins() );
+//        flashing_pins[0] = pattern_selector.init_pins()[0];
+//        flashing_pins[1] = pattern_selector.init_pins()[1];
     }
 
-    void UpdateLights( const unsigned int* init_pins )
+    void ReInitLights( const unsigned int* init_pins )
     {
         flashing_pins[0] = init_pins[0];
         flashing_pins[1] = init_pins[1];
     }
 
-    void Flash( bool state )
+    void UpdateLights( bool state )
     {
         digitalWrite( flashing_pins[0], state );
         digitalWrite( flashing_pins[1], state );

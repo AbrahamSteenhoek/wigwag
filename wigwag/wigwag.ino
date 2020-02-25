@@ -54,38 +54,10 @@ void FlashCurrentPattern()
         state = LOW;
 
         pattern_flasher.Switch();
-
-        /*/
-        // need to switch to different pins depending on what the current pattern is
-        switch( pattern_selector.CurrentPattern() )
-        {
-            case Pattern::WIGWAG:
-                flashing_pins[0] = (flashing_pins[0] == L1)? L2 : L1;
-                flashing_pins[1] = (flashing_pins[1] == L4)? L3 : L4;
-                break;
-            case Pattern::XSTROBE:
-                flashing_pins[0] = (flashing_pins[0] == L1)? L4 : L1;
-                flashing_pins[1] = (flashing_pins[1] == L3)? L2 : L3;
-                break;
-            case Pattern::UPPER_LOWER:
-                flashing_pins[0] = (flashing_pins[0] == L1)? L3 : L1;
-                flashing_pins[1] = (flashing_pins[1] == L2)? L4 : L2;
-                break;
-            case Pattern::LOWER:
-                // the lower pattern constantly flashes the lower lights
-                break;
-            default: // error case
-                ResetOutputs();
-                break;
-        }
-        //*/
-        PrintCurrentFlashingPattern();
     }
 
     // send the appropriate state to the current selected pins
-    //digitalWrite( flashing_pins[0], state );
-    //digitalWrite( flashing_pins[1], state );
-    pattern_flasher.Flash( state );
+    pattern_flasher.UpdateLights( state );
 }
 
 void PrintCurrentFlashingPattern()
@@ -145,18 +117,4 @@ void loop()
     
     lastButtonState = buttonState;
     FlashCurrentPattern();
-    /*
-    switch( pattern_select )
-    {
-        case 0:
-            Wigwag();
-            break;
-        case 1:
-            XStrobe();
-            break;
-        default:
-            Wigwag();
-            break;
-    }
-    //*/
 }
