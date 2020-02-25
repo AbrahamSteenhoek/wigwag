@@ -1,0 +1,3 @@
+*.o
+build
+wigwag/unit_tests/build
