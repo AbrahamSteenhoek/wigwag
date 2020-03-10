@@ -1,18 +1,46 @@
+//#include <EEPROM.h> // only Arduino Uno has EEPROM
+
+#include "Flash.h"
 #include "Patterns.h"
+#include "PatternSelector.h"
+#include "PatternFlasher.h"
 #include "Pins.h"
 
-PatternSelector pattern_selector;
-PatternFlasher pattern_flasher;
+// TODO: can I make these static?
+int buttonState = HIGH;
+int lastButtonState = HIGH;
 
-void setup() 
+
+// initialize the current active pattern as the one stored in flash
+// TODO: Make these Singletons (ewwwww)
+PatternSelector pattern_selector( ReadPatternFromROM() );
+//PatternSelector pattern_selector( Pattern::WIGWAG );
+PatternFlasher pattern_flasher( pattern_selector );
+
+void setup()
 {
     Serial.begin(9600);
     pinMode(L1, OUTPUT);
     pinMode(L2, OUTPUT);
     pinMode(L3, OUTPUT);
     pinMode(L4, OUTPUT);
+    pinMode(LED_BUILTIN, OUTPUT);
+
+    pinMode( buttonPin, INPUT );
+    pinMode( strobe_switch_pin, INPUT );
+
+    pinMode( L_turn, INPUT );
+    pinMode( R_turn, INPUT );
+    attachInterrupt( digitalPinToInterrupt( L_turn ), TripTurnSignal, RISING );
+    attachInterrupt( digitalPinToInterrupt( R_turn ), TripTurnSignal, RISING );
 
     ResetOutputs();
+}
+
+void TripTurnSignal()
+{
+    ResetOutputs();
+    ts_trigger = HIGH; // turn signal has been tripped
 }
 
 // reset all outputs to OFF
@@ -24,10 +52,11 @@ void ResetOutputs()
     digitalWrite(L4, LOW);
 }
 
+// TODO: make this a function inside the PatternFlasher class
 void FlashCurrentPattern() 
 {
-    unsigned long currentTime = millis();
-    const unsigned int num_flashes = 3; // the pattern will flash [num_flashes] times per side
+    ulong currentTime = millis();
+    const uint num_flashes = 3; // the pattern will flash [num_flashes] times per side
     //unsigned int flashing_pins[2] = { pattern_selector.init_pins()[0], pattern_selector.init_pins()[1] };
 
     // if the pattern has changed, update the flasher
@@ -60,9 +89,12 @@ void FlashCurrentPattern()
     pattern_flasher.UpdateLights( state );
 }
 
+// Debug Method
 void PrintCurrentFlashingPattern()
 {
-    switch( pattern_flasher.CurrentPattern() )
+    //Serial.print( "Button check: " );
+    //Serial.println( EEPROM.isValid() );
+    switch( pattern_selector.CurrentPattern() )
     {
         case Pattern::WIGWAG:
             Serial.println("WIGWAG");
@@ -82,39 +114,72 @@ void PrintCurrentFlashingPattern()
     }
 }
 
-int buttonState = 0;
-int lastButtonState = 0;
+bool StrobeOn()
+{
+    return digitalRead( strobe_switch_pin ) == HIGH;
+}
+
+bool ButtonStateChanged( const bool buttonState, const bool lastButtonState )
+{
+    if(buttonState != lastButtonState) {
+        // need the same reading for 30ms to count as a button state change
+        int delay_count = 0;
+        while ( delay_count++ < 3)
+        {
+            delay(10);
+            if ( digitalRead(buttonPin) != buttonState ) // if there is a different reading within 30 ms, then we ditch the reading
+            {
+                return false;
+            }
+        }
+    }
+    else
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool TurnSignalDone()
+{
+    return abs( millis() - ts_trigger_time ) > ts_wait;
+}
 
 void loop()
 {
-    buttonState = digitalRead(buttonPin);
-    
-    // if the buttonState has been changed
-    if(buttonState != lastButtonState) {
-        // went from OFF to ON, button has been pushed
-        // triggers on button release (LOW)
-        delay(10);
-        // check the reading three times in a row with 10ms delays in betweem to verify readings
-        if(buttonState == lastButtonState) {
-            goto skip;
-        }
-        delay(10);
-        if(buttonState == lastButtonState) {
-            goto skip;
-        }
-        // We've registered a button press
-        if(buttonState == LOW) {
-            ResetOutputs();
-            pattern_selector.CyclePattern();
-            PrintCurrentFlashingPattern();
-        }
-        // went from ON to OFF, button has been released
-        else {
-
-        }
+    if ( ts_trigger == HIGH )
+    {
+        ts_trigger = false; // reset the turn signal trigger
+        ts_trigger_time = millis();
     }
-    skip:
-    
-    lastButtonState = buttonState;
-    FlashCurrentPattern();
+
+    if ( StrobeOn() && TurnSignalDone() )
+    {
+        buttonState = digitalRead(buttonPin);
+        // only want to cycle the pattern when the user can see the pattern change (strobe is on)
+        // if the buttonState has been changed
+        // should trigger on button release
+        if( ButtonStateChanged( buttonState, lastButtonState ) ) {
+            // if we have gone from PRESSED to RELEASED (using reverse logic)
+            if ( buttonState == HIGH ) {
+                ResetOutputs();
+                pattern_selector.CyclePattern();
+                digitalWrite(LED_BUILTIN, LOW);
+                PrintCurrentFlashingPattern(); // debug
+            }
+            // if we have gone from RELEASED to PRESSED
+            else {
+                digitalWrite( LED_BUILTIN, HIGH );
+            }
+        }
+        skip:
+
+        FlashCurrentPattern();
+        lastButtonState = buttonState;
+    }
+    else
+    {
+        ResetOutputs();
+    }
 }

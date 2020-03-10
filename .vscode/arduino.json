@@ -1,5 +1,6 @@
 {
-    "board": "arduino:samd:mkrzero",
+    "board": "arduino:avr:nano",
     "sketch": "wigwag\\wigwag.ino",
-    "port": "COM13"
+    "port": "COM27",
+    "configuration": "cpu=atmega328"
 }
