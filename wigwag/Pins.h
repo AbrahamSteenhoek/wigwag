@@ -9,8 +9,8 @@ const uint R_turn = 3;
 // pins 5&7 are toast
 const uint L1 = 8;
 const uint L2 = 9;
-const uint L3 = 4;
-const uint L4 = 6;
+const uint L3 = 6;
+const uint L4 = 4;
 
 uint xstrobe_pins_init[2] = { L1, L3 };
 uint upper_lower_pins_init[2] = { L1, L2 };
