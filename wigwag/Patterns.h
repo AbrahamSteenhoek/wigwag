@@ -9,7 +9,7 @@ uint flash_count;
 bool state = LOW;
 
 bool turn_signal_on = LOW;
-const ulong ts_wait = 2000; // amount of time [ms] that we wait to resume our pattern
+const ulong ts_wait = 1500; // amount of time [ms] that we wait to resume our pattern
 volatile bool ts_trigger = LOW; // Arduino Reference recommends setting variables changed by ISR as volatile
 ulong ts_trigger_time = 0;
 
