@@ -9,6 +9,13 @@ typedef unsigned char byte;
 
 int PATTERN_ADDRESS = 0; // this has to be an int because of the library for some reason...why tho
 
+void StorePatternToROM( Pattern pattern )
+{
+    // EEPROM Implementation
+    EEPROM.write( PATTERN_ADDRESS, (int)pattern );
+    delay(10); // EEPROM write takes some time
+}
+
 Pattern ReadPatternFromROM()
 {
     // EEPROM Implementation
@@ -21,11 +28,4 @@ Pattern ReadPatternFromROM()
     }
 
     return pattern;
-}
-
-void StorePatternToROM( Pattern pattern )
-{
-    // EEPROM Implementation
-    EEPROM.write( PATTERN_ADDRESS, (int)pattern );
-    delay(10); // EEPROM write takes some time
 }

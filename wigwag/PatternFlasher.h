@@ -16,8 +16,6 @@ public:
     {
         current_pattern = p_selector.CurrentPattern();
         ReInitLights( p_selector.init_pins() );
-//        flashing_pins[0] = p_selector.init_pins()[0];
-//        flashing_pins[1] = p_selector.init_pins()[1];
     }
 
     void ReInitLights( const uint* init_pins )

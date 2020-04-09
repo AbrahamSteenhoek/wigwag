@@ -27,7 +27,6 @@ void setup()
     pinMode(LED_BUILTIN, OUTPUT);
 
     pinMode( buttonPin, INPUT );
-    pinMode( strobe_switch_pin, INPUT );
 
     pinMode( L_turn, INPUT );
     pinMode( R_turn, INPUT );
@@ -50,6 +49,11 @@ void ResetOutputs()
     digitalWrite(L2, LOW);
     digitalWrite(L3, LOW);
     digitalWrite(L4, LOW);
+}
+
+bool TurnSignalOn()
+{
+    return digitalRead( L_turn ) || digitalRead( R_turn );
 }
 
 // TODO: make this a function inside the PatternFlasher class
@@ -114,11 +118,6 @@ void PrintCurrentFlashingPattern()
     }
 }
 
-bool StrobeOn()
-{
-    return digitalRead( strobe_switch_pin ) == HIGH;
-}
-
 bool ButtonStateChanged( const bool buttonState, const bool lastButtonState )
 {
     if(buttonState != lastButtonState) {
@@ -143,6 +142,13 @@ bool ButtonStateChanged( const bool buttonState, const bool lastButtonState )
 
 bool TurnSignalDone()
 {
+    // still holding turn signal
+    if( TurnSignalOn() )
+    {
+        ts_trigger = millis();
+        return false;
+    }
+
     return abs( millis() - ts_trigger_time ) > ts_wait;
 }
 
@@ -154,7 +160,7 @@ void loop()
         ts_trigger_time = millis();
     }
 
-    if ( StrobeOn() && TurnSignalDone() )
+    if ( TurnSignalDone() )
     {
         buttonState = digitalRead(buttonPin);
         // only want to cycle the pattern when the user can see the pattern change (strobe is on)
