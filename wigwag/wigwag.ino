@@ -27,7 +27,6 @@ void setup()
     pinMode(LED_BUILTIN, OUTPUT);
 
     pinMode( buttonPin, INPUT );
-    pinMode( strobe_switch_pin, INPUT );
 
     pinMode( L_turn, INPUT );
     pinMode( R_turn, INPUT );
@@ -117,11 +116,6 @@ void PrintCurrentFlashingPattern()
             Serial.println("ERROR");
             break;                
     }
-}
-
-bool StrobeOn()
-{
-    return digitalRead( strobe_switch_pin ) == HIGH;
 }
 
 bool ButtonStateChanged( const bool buttonState, const bool lastButtonState )

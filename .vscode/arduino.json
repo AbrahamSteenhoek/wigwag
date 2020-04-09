@@ -1,6 +1,6 @@
 {
     "board": "arduino:avr:nano",
     "sketch": "wigwag\\wigwag.ino",
-    "port": "COM27",
+    "port": "COM31",
     "configuration": "cpu=atmega328"
 }
